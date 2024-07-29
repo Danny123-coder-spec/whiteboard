@@ -45,21 +45,32 @@ const Home = () => {
     setOpenDropdownId(null);
   };
 
+  //   const handleRenameWhiteboard = (id: number, newTitle: string) => {
+  //     const updatedWhiteboards = whiteboards.map((wb) => {
+  //       if (wb.id === id) {
+  //         return { ...wb, title: newTitle };
+  //       }
+  //       return wb;
+  //     });
+  //     setWhiteboards(updatedWhiteboards);
+  //     localStorage.setItem("whiteboards", JSON.stringify(updatedWhiteboards));
+  //     setOpenDropdownId(null);
+  //   };
+
   const handleDeleteWhiteboard = (id: number) => {
     const updatedWhiteboards = whiteboards.filter((wb) => wb.id !== id);
     setWhiteboards(updatedWhiteboards);
     localStorage.setItem("whiteboards", JSON.stringify(updatedWhiteboards));
     setOpenDropdownId(null);
   };
-  
 
   const toggleDropdown = (id: number) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
 
-//   const sortedWhiteboards = [...whiteboards].sort(
-//     (a, b) => b.timestamp - a.timestamp
-//   );
+  //   const sortedWhiteboards = [...whiteboards].sort(
+  //     (a, b) => b.timestamp - a.timestamp
+  //   );
 
   return (
     <>
@@ -70,6 +81,7 @@ const Home = () => {
             <WhiteboardCard
               text="New Whiteboard"
               handleClickWhiteCard={handleCreateNewWhiteboard}
+
             />
             {whiteboards.map((whiteboard) => (
               <div
@@ -96,6 +108,7 @@ const Home = () => {
                       className="text-slate-900 cursor-pointer"
                       onClick={() => toggleDropdown(whiteboard.id)}
                     />
+                   
                     {openDropdownId === whiteboard.id && (
                       <WhiteboardActions
                         onRename={(newTitle) =>

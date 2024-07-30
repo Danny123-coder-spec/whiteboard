@@ -1,21 +1,21 @@
-import React from "react";
-import { FiUser } from "react-icons/fi";
+
 import { CiSettings } from "react-icons/ci";
 import { GoHome } from "react-icons/go";
 import { Link } from "react-router-dom";
+import { GoChevronDown } from "react-icons/go";
 
 const WhiteboardNav = () => {
   return (
-    <div className="bg-white p-2 h-[3rem] w-full shadow-sm flex items-start justify-between">
-      <div className="flex item-center gap-7">
+    <div className="bg-white h-[2.6rem] w-full shadow-sm flex items-center px-3 justify-between">
+      <div className="flex items-center gap-4">
         <Link to="/">
-          <GoHome size={24} />
+          <GoHome size={20} />
         </Link>
-
-        <span className="text-base">
-            Untitled Document
-
-        </span>
+        <div className="bg-gray-300 h-[1rem] w-[0.5px]"></div>
+        <div className="flex items-center gap-1.5 flex-row">
+          <span className="text-base font-medium">Untitled Document</span>
+          <GoChevronDown size={22} className="text-gray-400"/>
+        </div>
       </div>
       <div className="flex items-center gap-6">
         <div className="cursor-pointer">

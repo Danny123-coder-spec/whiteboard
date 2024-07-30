@@ -3,6 +3,7 @@ import { CiSettings } from "react-icons/ci";
 import { GoHome } from "react-icons/go";
 import { Link } from "react-router-dom";
 import { GoChevronDown } from "react-icons/go";
+import { CiShare2 } from "react-icons/ci";
 
 const WhiteboardNav = () => {
   return (
@@ -21,8 +22,9 @@ const WhiteboardNav = () => {
         <div className="cursor-pointer">
           <button
             onClick={() => {}}
-            className="p-1.5 text-sm border border-slate-700 bg-transparent text-slate-900 w-[7rem] rounded"
+            className="p-1.5 text-sm border flex items-center justify-center gap-4 border-slate-700 bg-transparent text-slate-900 w-[7rem] rounded"
           >
+            <CiShare2/>
             Share
           </button>
         </div>

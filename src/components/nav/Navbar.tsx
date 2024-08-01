@@ -1,4 +1,4 @@
-import React from "react";
+
 import { FiUser } from "react-icons/fi";
 import { CiSettings } from "react-icons/ci";
 

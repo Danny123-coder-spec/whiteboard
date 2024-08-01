@@ -1,23 +1,12 @@
-// "use client";
-
-// import { useEffect, useRef, useState } from "react";
-// import { fabric } from "fabric";
-// import io from "socket.io-client";
-
-// const socket = io("http://localhost:4000"); // Replace with your server URL
-
-// interface ProductIdProps {
-//   productId: string;
-//   active: string;
-//   shirtColor: string;
-// }
+// import { useEffect, useRef, useState } from 'react';
+// import { fabric } from 'fabric';
+// import socket from '../socket';
 
 // const useCanvas = () => {
-//   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
-//   const [selectedText, setSelectedText] = useState<fabric.Text | null>(null);
-//   const [shirtImage, setShirtImage] = useState<fabric.Image | null>(null);
-
 //   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+//   const [tool, setTool] = useState<string>('cursor');
+//   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
+//   const [file, setFile] = useState<File | null>(null);
 
 //   useEffect(() => {
 //     if (canvas) return;
@@ -28,241 +17,285 @@
 
 //     setCanvas(canvasInstance);
 
-//     // Set up Socket.IO listeners
-//     socket.on("addImage", (data) => {
-//       addImageFromUrl(data.url, data.opts, false);
+//     return () => {
+//       canvasInstance.dispose();
+//     };
+//   }, []);
+
+//   useEffect(() => {
+//     if (!canvasRef.current) return;
+
+//     const newCanvas = new fabric.Canvas(canvasRef.current);
+//     setCanvas(newCanvas);
+
+//     if (tool === 'pencil') {
+//         newCanvas.isDrawingMode = true;
+//       } else {
+//         newCanvas.isDrawingMode = false;
+//       }
+
+//     newCanvas.on('mouse:up', () => {
+//       if (tool === 'pencil') {
+//         const data = newCanvas.toJSON();
+//         socket.emit('drawing', data);
+//       }
 //     });
 
-//     socket.on("addText", (data) => {
-//       addText(data, false);
+//     socket.on('drawing', (data) => {
+//       newCanvas.loadFromJSON(data, () => {
+//         newCanvas.renderAll();
+//       });
 //     });
 
-//     socket.on("clearCanvas", () => {
-//       clearCanvas(false);
+//     newCanvas.on('mouse:move', (e) => {
+//       if (tool === 'cursor') {
+//         const pointer = newCanvas.getPointer(e.e);
+//         socket.emit('cursor', pointer);
+//       }
+//     });
+
+//     socket.on('cursor', (pointer) => {
+//       // Update cursor position (you can implement a custom cursor if you want)
 //     });
 
 //     return () => {
-//       canvasInstance.dispose();
-//       socket.off("addImage");
-//       socket.off("addText");
-//       socket.off("clearCanvas");
+//       socket.off('drawing');
+//       socket.off('cursor');
 //     };
-//   }, [canvas]);
+//   }, [tool]);
 
-//   const addImage = ({
-//     shirt,
-//     shirtColor,
-//     trimColor,
-//   }: {
-//     shirt: string;
-//     shirtColor?: string;
-//     trimColor?: string;
-//   }) => {
-//     if (!canvas) return;
-
-//     const imgOpts = {
-//       top: 0,
-//       left: 10,
-//       selectable: false,
-//     };
-
-//     const imgElement = document.createElement("img");
-//     imgElement.crossOrigin = "anonymous";
-
-//     imgElement.src = `/images/shirts/${shirt}`;
-
-//     imgElement.onload = function () {
-//       const newShirtImage = new fabric.Image(imgElement, {
-//         ...imgOpts,
-//         scaleX: 429 / imgElement.width,
-//         scaleY: 450 / imgElement.height,
-//       });
-
-//       if (shirtColor) {
-//         newShirtImage.filters?.push(
-//           new fabric.Image.filters.BlendColor({
-//             color: shirtColor,
-//           })
-//         );
+//   useEffect(() => {
+//     if (canvasRef.current) {
+//       if (tool === 'pencil') {
+//         canvasRef.current.style.cursor = 'crosshair';
+//       } else {
+//         canvasRef.current.style.cursor = 'default';
 //       }
-//       newShirtImage.applyFilters();
+//     }
+//   }, [tool]);
 
-//       if (shirtImage) {
-//         canvas.remove(shirtImage);
-//       }
+//   useEffect(() => {
+//     if (file && canvas) {
+//       const reader = new FileReader();
+//       reader.onload = (f) => {
+//         const data = f.target?.result as string;
 
-//       setShirtImage(newShirtImage);
-//       canvas.add(newShirtImage);
-//       canvas.sendToBack(newShirtImage);
-//       canvas.renderAll();
-
-//       // Emit event to other users
-//       socket.emit("addImage", { url: imgElement.src, opts: imgOpts });
-//     };
-//   };
-
-//   const addImageFromFile = (file: File) => {
-//     if (!canvas) return;
-//     const reader = new FileReader();
-//     reader.onload = (f) => {
-//       const data = f.target?.result as string;
-
-//       fabric.Image.fromURL(data as string, (img: any) => {
-//         if (!img.width || !img.height) {
-//           console.error("Image width or height is undefined");
-//           return;
-//         }
-
-//         const canvasWidth = canvas.getWidth();
-//         const canvasHeight = canvas.getHeight();
-
-//         const scaleX = canvasWidth / img.width;
-//         const scaleY = canvasHeight / img.height;
-//         const scale = Math.min(scaleX, scaleY) * 0.3;
-
-//         const scaledWidth = img.width * scale;
-//         const scaledHeight = img.height * scale;
-//         const left = (canvasWidth - scaledWidth) / 2;
-//         const top = canvasHeight * 0.25 - scaledHeight / 2;
-
-//         img.set({
-//           left,
-//           top,
-//           scaleX: scale,
-//           scaleY: scale,
-//           angle: 0,
-//         });
-
-//         canvas.add(img).renderAll();
-//         canvas.setActiveObject(img);
-
-//         // Emit event to other users
-//         socket.emit("addImage", { url: data, opts: { left, top, scaleX: scale, scaleY: scale, angle: 0 } });
-
-//         document.addEventListener("keydown", (e) => {
-//           if (e.key === "Delete" || e.key === "Backspace") {
-//             const activeObject = canvas?.getActiveObject();
-//             if (activeObject) {
-//               canvas?.remove(activeObject);
-//             }
+//         fabric.Image.fromURL(data, (img) => {
+//           if (!img.width || !img.height) {
+//             console.error("Image width or height is undefined");
+//             return;
 //           }
+
+//           const canvasWidth = canvas.getWidth();
+//           const canvasHeight = canvas.getHeight();
+
+//           const scaleX = canvasWidth / img.width;
+//           const scaleY = canvasHeight / img.height;
+//           const scale = Math.min(scaleX, scaleY) * 0.5;
+
+//           const scaledWidth = img.width * scale;
+//           const scaledHeight = img.height * scale;
+//           const left = (canvasWidth - scaledWidth) / 2;
+//           const top = canvasHeight * 0.25 - scaledHeight / 2;
+
+//           img.set({
+//             left,
+//             top,
+//             scaleX: scale,
+//             scaleY: scale,
+//             angle: 0,
+//           });
+
+//           canvas.add(img).renderAll();
+//           canvas.setActiveObject(img);
+
+//           document.addEventListener("keydown", (e) => {
+//             if (e.key === "Delete" || e.key === "Backspace") {
+//               const activeObject = canvas.getActiveObject();
+//               if (activeObject) {
+//                 canvas.remove(activeObject);
+
+//               }
+//             }
+//           });
 //         });
-//       });
-//     };
-//     reader.readAsDataURL(file);
-//   };
-
-//   const addImageFromUrl = (url: string, opts: any = {}, emit = true) => {
-//     if (!canvas) return;
-
-//     fabric.Image.fromURL(url, (img: any) => {
-//       if (!img.width || !img.height) {
-//         console.error("Image width or height is undefined");
-//         return;
-//       }
-
-//       const canvasWidth = canvas.getWidth();
-//       const canvasHeight = canvas.getHeight();
-//       const scaleX = canvasWidth / img.width;
-//       const scaleY = canvasHeight / img.height;
-//       const scale = Math.min(scaleX, scaleY) * 0.3;
-
-//       const scaledWidth = img.width * scale;
-//       const scaledHeight = img.height * scale;
-//       const left = (canvasWidth - scaledWidth) / 2;
-//       const top = canvasHeight * 0.25 - scaledHeight / 2;
-
-//       img.set({
-//         ...opts,
-//         left,
-//         top,
-//         scaleX: scale,
-//         scaleY: scale,
-//         angle: 0,
-//       });
-
-//       canvas.add(img).renderAll();
-//       canvas.setActiveObject(img);
-
-//       // Emit event to other users if not already emitted
-//       if (emit) {
-//         socket.emit("addImage", { url, opts });
-//       }
-//     });
-//   };
-
-//   const addText = ({ textName, textColor, size }: { textName: string; textColor: string; size: number }, emit = true) => {
-//     const obj = new fabric.Text(textName, {
-//       top: 110,
-//       left: 160,
-//       fill: textColor || "black",
-//       fontSize: size,
-//     });
-
-//     obj.setControlsVisibility({
-//       mt: false,
-//       mb: false,
-//       ml: false,
-//       mr: false,
-//       bl: false,
-//       br: false,
-//       tl: false,
-//       tr: false,
-//     });
-
-//     canvas?.add(obj);
-//     canvas?.setActiveObject(obj);
-
-//     canvas?.on("mouse:down", (options: any) => {
-//       if (options.target && options.target.type === "text") {
-//         setSelectedText(options.target as fabric.Text);
-//       } else {
-//         setSelectedText(null);
-//       }
-//     });
-
-//     // Emit event to other users if not already emitted
-//     if (emit) {
-//       socket.emit("addText", { textName, textColor, size });
+//       };
+//       reader.readAsDataURL(file);
 //     }
-//   };
+//   }, [file, canvas]);
 
-//   const updateText = ({ textName, textColor, size }: { textName: string; textColor: string; size: number }) => {
-//     if (selectedText) {
-//       selectedText.set({
-//         text: textName,
-//         fill: textColor,
-//         fontSize: size,
-//       });
-//       canvas?.renderAll();
-//     }
-//   };
-
-//   const clearCanvas = (emit = true) => {
-//     if (canvas) {
-//       if (shirtImage) {
-//         canvas.remove(shirtImage);
-//         setShirtImage(null);
-//         canvas.renderAll();
-//       } else {
-//         canvas.clear();
-//       }
-//     }
-
-//     // Emit event to other users if not already emitted
-//     if (emit) {
-//       socket.emit("clearCanvas");
-//     }
-//   };
-
-//   return {
-//     addImage,
-//     addImageFromFile,
-//     addImageFromUrl,
-//     addText,
-//     updateText,
-//     clearCanvas,
-//   };
+//   return { canvasRef, setTool, setFile, file};
 // };
 
 // export default useCanvas;
+
+
+
+
+import { useEffect, useRef, useState } from 'react';
+import { fabric } from 'fabric';
+import socket from '../socket';
+
+const useCanvas = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [tool, setTool] = useState<string>('cursor');
+  const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (canvasRef.current && !canvas) {
+      const canvasInstance = new fabric.Canvas(canvasRef.current);
+      canvasInstance.setHeight(380);
+      canvasInstance.setWidth(800);
+      setCanvas(canvasInstance);
+
+      return () => {
+        canvasInstance.dispose();
+      };
+    }
+  }, [canvasRef.current, canvas]);
+
+  useEffect(() => {
+    if (canvas) {
+      if (tool === 'pencil') {
+        canvas.isDrawingMode = true;
+        canvas.freeDrawingBrush.color = 'black';
+        canvas.freeDrawingBrush.width = 5;
+      } else {
+        canvas.isDrawingMode = false;
+      }
+
+      const handleMouseUp = () => {
+        if (tool === 'pencil') {
+          const data = canvas.toJSON();
+          socket.emit('drawing', data);
+        }
+      };
+
+      canvas.on('mouse:up', handleMouseUp);
+
+      const handleMouseMove = (e:any) => {
+        if (tool === 'cursor') {
+          const pointer = canvas.getPointer(e.e);
+          socket.emit('cursor', pointer);
+        }
+      };
+
+      canvas.on('mouse:move', handleMouseMove);
+
+      socket.on('drawing', (data) => {
+        canvas.loadFromJSON(data, () => {
+          canvas.renderAll();
+        });
+      });
+
+      return () => {
+        canvas.off('mouse:up', handleMouseUp);
+        canvas.off('mouse:move', handleMouseMove);
+        socket.off('drawing');
+        socket.off('cursor');
+      };
+    }
+  }, [canvas, tool]);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      canvasRef.current.style.cursor = tool === 'pencil' ? 'crosshair' : 'default';
+    }
+  }, [tool]);
+
+  useEffect(() => {
+    if (file && canvas) {
+      const reader = new FileReader();
+      reader.onload = (f) => {
+        const data = f.target?.result as string;
+        if (data) {
+          fabric.Image.fromURL(data, (img) => {
+            if (!img.width || !img.height) {
+              console.error("Image width or height is undefined");
+              return;
+            }
+
+            const canvasWidth = canvas.getWidth();
+            const canvasHeight = canvas.getHeight();
+            const scaleX = canvasWidth / img.width;
+            const scaleY = canvasHeight / img.height;
+            const scale = Math.min(scaleX, scaleY) * 0.5;
+
+            img.set({
+              left: (canvasWidth - img.width * scale) / 2,
+              top: (canvasHeight - img.height * scale) / 2,
+              scaleX: scale,
+              scaleY: scale,
+              selectable: true,
+              hasControls: true,
+              hasBorders: true,
+            });
+
+            canvas.add(img).renderAll();
+            canvas.setActiveObject(img);
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [file, canvas]);
+
+  return { canvasRef, setTool, setFile, file };
+};
+
+export default useCanvas;
+
+//   useEffect(() => {
+//     if (file && canvas) {
+//       const reader = new FileReader();
+//       reader.onload = (f) => {
+//         const data = f.target?.result as string;
+
+//         fabric.Image.fromURL(data, (img) => {
+//           if (!img.width || !img.height) {
+//             console.error("Image width or height is undefined");
+//             return;
+//           }
+
+//           const canvasWidth = canvas.getWidth();
+//           const canvasHeight = canvas.getHeight();
+
+//           const scaleX = canvasWidth / img.width;
+//           const scaleY = canvasHeight / img.height;
+//           const scale = Math.min(scaleX, scaleY) * 0.5;
+
+//           const scaledWidth = img.width * scale;
+//           const scaledHeight = img.height * scale;
+//           const left = (canvasWidth - scaledWidth) / 2;
+//           const top = canvasHeight * 0.25 - scaledHeight / 2;
+
+//           img.set({
+//             left,
+//             top,
+//             scaleX: scale,
+//             scaleY: scale,
+//             angle: 0,
+//             selectable: true,
+//             hasControls: true,
+//             hasBorders: true,
+//           });
+
+//           canvas.add(img).renderAll();
+//           canvas.setActiveObject(img);
+
+//           document.addEventListener("keydown", (e) => {
+//             if (e.key === "Delete" || e.key === "Backspace") {
+//               const activeObject = canvas.getActiveObject();
+//               if (activeObject) {
+//                 canvas.remove(activeObject);
+//                 // Optionally, use a toast notification library to show success message
+//                 // toast.success("Image deleted successfully");
+//               }
+//             }
+//           });
+//         });
+//       };
+//       reader.readAsDataURL(file);
+//     }
+//   }, [file, canvas]);

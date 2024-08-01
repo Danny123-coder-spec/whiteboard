@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import HomeNav from "../../components/nav/Navbar";
 import WhiteboardCard from "../../components/WhiteboardCard";
 import { useNavigate } from "react-router-dom";
 import { PiDotsThree } from "react-icons/pi";
-import WhiteboardActions from "../../components/WhiteboardActions"; // Adjust the import based on your file structure
+import WhiteboardActions from "../../components/WhiteboardActions";
 
 interface Whiteboard {
   id: number;
@@ -44,18 +44,6 @@ const Home = () => {
     localStorage.setItem("whiteboards", JSON.stringify(updatedWhiteboards));
     setOpenDropdownId(null);
   };
-
-  //   const handleRenameWhiteboard = (id: number, newTitle: string) => {
-  //     const updatedWhiteboards = whiteboards.map((wb) => {
-  //       if (wb.id === id) {
-  //         return { ...wb, title: newTitle };
-  //       }
-  //       return wb;
-  //     });
-  //     setWhiteboards(updatedWhiteboards);
-  //     localStorage.setItem("whiteboards", JSON.stringify(updatedWhiteboards));
-  //     setOpenDropdownId(null);
-  //   };
 
   const handleDeleteWhiteboard = (id: number) => {
     const updatedWhiteboards = whiteboards.filter((wb) => wb.id !== id);

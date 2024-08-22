@@ -9,11 +9,14 @@
  import { PiShapes } from "react-icons/pi";
  import { useEffect, useState } from "react";
 import TextProperties from "./TextProperties";
+import PencilPalette from "./PencilPalette";
 
 interface BottomfuncProps {
   setTool: (tool: string) => void;
   file: File | null;
   setFile: (file: File) => void;
+  handlePencilSelect:(color:string, width:number) => void;
+  showPencilPalette:boolean;
   selectedText: fabric.Text | null;
   updateTextStyle: (
     styleType: "bold" | "italic" | "underline" | "color" | "delete" | "copy" | "stroke",
@@ -24,7 +27,7 @@ interface BottomfuncProps {
 
 
 
-const Bottomfunc = ({ setTool, setFile, selectedText, updateTextStyle }: BottomfuncProps) => {
+const Bottomfunc = ({ setTool, setFile, selectedText, updateTextStyle ,showPencilPalette,handlePencilSelect}: BottomfuncProps) => {
   const [activeTab, setActiveTab] = useState<string>('cursor');
 
   const handleIconClick = (id: string) => {
@@ -53,7 +56,7 @@ const Bottomfunc = ({ setTool, setFile, selectedText, updateTextStyle }: Bottomf
 
   return (
     <section className="flex items-center">
-      <div className="flex items-center gap-2">
+      <div className="flex relative items-center gap-2">
         {/* Undo and Redo */}
         <div className="bg-white h-[2.5rem] flex items-center justify-center rounded-[8px] shadow-md w-[2.6rem]">
           <div onClick={() => handleIconClick('undo')} className="flex items-center justify-center cursor-pointer">
@@ -79,6 +82,11 @@ const Bottomfunc = ({ setTool, setFile, selectedText, updateTextStyle }: Bottomf
           <div onClick={() => handleIconClick('image')} className={iconClass('image')}>
             <GoImage size={18} />
           </div>
+        {showPencilPalette && (
+        <div className="absolute -top-14 mb-2 left-10 right-0 flex justify-center">
+          <PencilPalette onSelectPencil={handlePencilSelect} showPencilPalette={showPencilPalette}/>
+        </div>
+      )}
         </div>
       </div>
       <input

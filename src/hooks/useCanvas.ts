@@ -11,6 +11,7 @@ const useCanvas = (whiteboardId: number) => {
   const canvas = useRef<fabric.Canvas | null>(null);
   const [selectedText, setSelectedText] = useState<fabric.Text | null>(null);
   const [showTextProperties, setShowTextProperties] = useState<boolean>(false);
+  const [showPencilPalette, setShowPencilPalette] = useState(false);
 
   const saveCanvasScreenshot = (
     canvas: fabric.Canvas,
@@ -123,9 +124,7 @@ const useCanvas = (whiteboardId: number) => {
 
     switch (tool) {
       case "pencil":
-        canvasInstance.isDrawingMode = true;
-        canvasInstance.freeDrawingBrush.color = "black";
-        canvasInstance.freeDrawingBrush.width = 3;
+        setShowPencilPalette(true);
         break;
       case "text":
         const text = new fabric.Textbox("Write Your Text Here", {
@@ -187,6 +186,16 @@ const useCanvas = (whiteboardId: number) => {
       default:
         canvasInstance.isDrawingMode = false;
     }
+  };
+
+  const handlePencilSelect = (color: string, width: number) => {
+    const canvasInstance = canvas.current;
+    if (!canvasInstance) return;
+
+    canvasInstance.isDrawingMode = true;
+    canvasInstance.freeDrawingBrush.color = color;
+    canvasInstance.freeDrawingBrush.width = width;
+    setShowPencilPalette(false);
   };
 
   // Adding image to the canvas
@@ -321,6 +330,9 @@ const useCanvas = (whiteboardId: number) => {
     file,
     selectedText,
     updateTextStyle,
+    handlePencilSelect,
+    showPencilPalette,
+    setShowPencilPalette,
   };
 };
 

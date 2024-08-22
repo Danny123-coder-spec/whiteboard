@@ -17,6 +17,7 @@ interface BottomfuncProps {
   setFile: (file: File) => void;
   handlePencilSelect:(color:string, width:number) => void;
   showPencilPalette:boolean;
+  setShowPencilPalette:(showPencilPalette:boolean) => void;
   selectedText: fabric.Text | null;
   updateTextStyle: (
     styleType: "bold" | "italic" | "underline" | "color" | "delete" | "copy" | "stroke",
@@ -27,7 +28,7 @@ interface BottomfuncProps {
 
 
 
-const Bottomfunc = ({ setTool, setFile, selectedText, updateTextStyle ,showPencilPalette,handlePencilSelect}: BottomfuncProps) => {
+const Bottomfunc = ({ setTool, setFile, selectedText, updateTextStyle ,setShowPencilPalette,showPencilPalette,handlePencilSelect}: BottomfuncProps) => {
   const [activeTab, setActiveTab] = useState<string>('cursor');
 
   const handleIconClick = (id: string) => {
@@ -84,7 +85,7 @@ const Bottomfunc = ({ setTool, setFile, selectedText, updateTextStyle ,showPenci
           </div>
         {showPencilPalette && (
         <div className="absolute -top-14 mb-2 left-10 right-0 flex justify-center">
-          <PencilPalette onSelectPencil={handlePencilSelect} showPencilPalette={showPencilPalette}/>
+          <PencilPalette setShowPencilPalette={setShowPencilPalette} onSelectPencil={handlePencilSelect} showPencilPalette={showPencilPalette}/>
         </div>
       )}
         </div>

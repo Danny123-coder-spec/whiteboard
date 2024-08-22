@@ -37,7 +37,7 @@ const WhiteboardPage = () => {
         <canvas ref={canvasRef} id="editingCanvas" className="w-full h-full" />
       </div>
       <div className="fixed bottom-2.5 left-0 w-full flex items-center justify-center z-20">
-        <Bottomfunc handlePencilSelect={handlePencilSelect} showPencilPalette={showPencilPalette} selectedText={selectedText} updateTextStyle={updateTextStyle} setTool={setTool} setFile={setFile} file={file} />
+        <Bottomfunc setShowPencilPalette={setShowPencilPalette} handlePencilSelect={handlePencilSelect} showPencilPalette={showPencilPalette} selectedText={selectedText} updateTextStyle={updateTextStyle} setTool={setTool} setFile={setFile} file={file} />
       </div>
       <div className="fixed bottom-2.5 right-2 flex items-end justify-end z-30">
         <div className="flex items-center justify-center bg-white gap-8 h-[2.5rem] rounded-[10px] shadow-md w-[12rem]">

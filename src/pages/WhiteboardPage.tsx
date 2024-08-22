@@ -3,30 +3,49 @@ import Bottomfunc from "../components/Bottomfunc";
 import { HiMagnifyingGlassMinus } from "react-icons/hi2";
 import { HiMagnifyingGlassPlus } from "react-icons/hi2";
 import useCanvas from "../hooks/useCanvas";
+import { Toaster } from "react-hot-toast";
+import { useParams } from "react-router-dom";
+import TextProperties from "../components/TextProperties";
 
 const WhiteboardPage = () => {
+  const {id } = useParams<{ id: string }>();
+  
+  console.log("whiteboardId:", id); 
+  const {
+    canvasRef,
+    setTool,
+    setFile,
+    file,
+    handleZoomIn,
+    handleZoomOut,
+    scale,
+    selectedText,
+    updateTextStyle,
+  } = useCanvas(Number(id));
 
-  const {canvasRef, setTool, setFile, file} = useCanvas();
- 
   return (
     <div className="relative flex flex-col min-h-screen">
+      <Toaster />
       <WhiteboardNav />
-      <div className="flex-grow relative h-full w-full">
-        <canvas ref={canvasRef}  className=" w-full h-full "/>
+      <div className="flex-grow relative">
+        {selectedText && (
+          <TextProperties updateTextStyle={updateTextStyle}/>
+        )}
+        <canvas ref={canvasRef} id="editingCanvas" className="w-full h-full" />
       </div>
-      <div className="bottom-2.5 z-20 left-0 w-full flex items-center justify-center fixed">
-        <Bottomfunc setTool={setTool} setFile={setFile} file={file}/>
+      <div className="fixed bottom-2.5 left-0 w-full flex items-center justify-center z-20">
+        <Bottomfunc selectedText={selectedText} updateTextStyle={updateTextStyle} setTool={setTool} setFile={setFile} file={file} />
       </div>
-      <div className="bottom-2.5 z-10 right-2 w-full flex items-end justify-end fixed">
-        <div className="flex items-end justify-end ">
-          <div className="bg-white gap-8 h-[2.5rem] rounded-[10px] shadow-md w-[12rem] flex items-center justify-center">
-            <div className="">
-              <HiMagnifyingGlassMinus />
-            </div>
-            <span className="text-gray-500 text-sm">100%</span>
-            <div className="">
-              <HiMagnifyingGlassPlus />
-            </div>
+      <div className="fixed bottom-2.5 right-2 flex items-end justify-end z-30">
+        <div className="flex items-center justify-center bg-white gap-8 h-[2.5rem] rounded-[10px] shadow-md w-[12rem]">
+          <div className="cursor-pointer" onClick={handleZoomOut}>
+            <HiMagnifyingGlassMinus />
+          </div>
+          <span className="text-gray-500 text-sm">
+            {Math.round(scale * 100)}%
+          </span>
+          <div className="cursor-pointer" onClick={handleZoomIn}>
+            <HiMagnifyingGlassPlus />
           </div>
         </div>
       </div>

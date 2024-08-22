@@ -9,26 +9,49 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 
+import { AiOutlineDelete } from "react-icons/ai";
+import { HiOutlinePencil } from "react-icons/hi2";
+
 interface WhiteboardActionsProps {
   onRename: (newTitle:string) => void;
   onDelete: () => void;
+  isOpen:boolean;
+  setIsOpen:(isOpen:boolean) => void;
+  isOpenDelete:boolean;
+  setIsOpenDelete:(isOpenDelete:boolean) => void;
 }
 
 const WhiteboardActions: React.FC<WhiteboardActionsProps> = ({
   onRename,
   onDelete,
+  isOpen,
+  setIsOpen,
+  isOpenDelete,
+  setIsOpenDelete,
 }) => {
-    const [newTitle, setNewTitle] = useState<string>("Untitled");
+    const [newTitle, setNewTitle] = useState<string>('');
     const [focus, setFocus] = useState<boolean>(false);
 
     const handleRename = () => {
       onRename(newTitle);
-      setNewTitle("");
+      setNewTitle(newTitle);
+      // setNewTitle("")
     };
+
+    const handleOpenChange = () => {
+      setIsOpen(!isOpen)
+    }
+
+    const handleOpenDeleteChange = () => {
+      setIsOpenDelete(!isOpenDelete)
+    }
   return (
-    <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
-      <Dialog>
-        <DialogTrigger className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100">Rename</DialogTrigger>
+    <div className="absolute top-0 right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogTrigger className=" flex items-center gap-2 px-2 py-2 w-full text-gray-700 hover:bg-gray-100">
+          <HiOutlinePencil size={18}/>
+          <span>Rename</span>
+        </DialogTrigger>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Rename Whiteboard</DialogTitle>
@@ -43,7 +66,7 @@ const WhiteboardActions: React.FC<WhiteboardActionsProps> = ({
               onFocus={() => setFocus(true)}
               onBlur={() => setFocus(false)}
             />
-             <div className="flex gap-2 items-center mt-3">
+             <div className="flex gap-2 items-center pt-3.5">
               <button
                 onClick={handleRename}
                 className="p-1.5 text-sm bg-blue-500 text-white rounded w-[6rem] "
@@ -51,7 +74,7 @@ const WhiteboardActions: React.FC<WhiteboardActionsProps> = ({
                 Rename
               </button>
               <button
-                onClick={handleRename}
+                onClick={handleOpenChange}
                 className="p-1.5 text-sm border border-slate-700 bg-transparent text-slate-900 w-[6rem] rounded"
               >
                 Cancel
@@ -60,15 +83,18 @@ const WhiteboardActions: React.FC<WhiteboardActionsProps> = ({
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog>
-        <DialogTrigger className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100">Delete</DialogTrigger>
+      <Dialog open={isOpenDelete} onOpenChange={handleOpenDeleteChange}>
+        <DialogTrigger className="flex items-center gap-2 px-2 py-2 text-left w-full text-gray-700 hover:bg-red-100">
+        <AiOutlineDelete size={18}/>
+        <span>Delete</span>
+        </DialogTrigger>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Delete Whiteboard</DialogTitle>
           </DialogHeader>
           <div>
             <p className="text-sm">Deleting it will permanently remove it. This cannot be undone.</p>
-             <div className="flex gap-2 items-center mt-3">
+             <div className="flex gap-2 items-center pt-3.5">
               <button
                 onClick={onDelete}
                 className="p-1.5 text-sm bg-red-500 text-white rounded w-[6rem] "
@@ -76,7 +102,7 @@ const WhiteboardActions: React.FC<WhiteboardActionsProps> = ({
                 Delete
               </button>
               <button
-                onClick={onDelete}
+                onClick={handleOpenDeleteChange}
                 className="p-1.5 text-sm border border-slate-700 bg-transparent text-slate-900 w-[6rem] rounded"
               >
                 Cancel

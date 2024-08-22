@@ -1,301 +1,344 @@
-// import { useEffect, useRef, useState } from 'react';
-// import { fabric } from 'fabric';
-// import socket from '../socket';
+import { useEffect, useRef, useState } from "react";
+import { fabric } from "fabric";
+import socket from "../socket";
 
-// const useCanvas = () => {
-//   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-//   const [tool, setTool] = useState<string>('cursor');
-//   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
-//   const [file, setFile] = useState<File | null>(null);
-
-//   useEffect(() => {
-//     if (canvas) return;
-
-//     const canvasInstance = new fabric.Canvas("editingCanvas");
-//     canvasInstance.setHeight(450);
-//     canvasInstance.setWidth(420);
-
-//     setCanvas(canvasInstance);
-
-//     return () => {
-//       canvasInstance.dispose();
-//     };
-//   }, []);
-
-//   useEffect(() => {
-//     if (!canvasRef.current) return;
-
-//     const newCanvas = new fabric.Canvas(canvasRef.current);
-//     setCanvas(newCanvas);
-
-//     if (tool === 'pencil') {
-//         newCanvas.isDrawingMode = true;
-//       } else {
-//         newCanvas.isDrawingMode = false;
-//       }
-
-//     newCanvas.on('mouse:up', () => {
-//       if (tool === 'pencil') {
-//         const data = newCanvas.toJSON();
-//         socket.emit('drawing', data);
-//       }
-//     });
-
-//     socket.on('drawing', (data) => {
-//       newCanvas.loadFromJSON(data, () => {
-//         newCanvas.renderAll();
-//       });
-//     });
-
-//     newCanvas.on('mouse:move', (e) => {
-//       if (tool === 'cursor') {
-//         const pointer = newCanvas.getPointer(e.e);
-//         socket.emit('cursor', pointer);
-//       }
-//     });
-
-//     socket.on('cursor', (pointer) => {
-//       // Update cursor position (you can implement a custom cursor if you want)
-//     });
-
-//     return () => {
-//       socket.off('drawing');
-//       socket.off('cursor');
-//     };
-//   }, [tool]);
-
-//   useEffect(() => {
-//     if (canvasRef.current) {
-//       if (tool === 'pencil') {
-//         canvasRef.current.style.cursor = 'crosshair';
-//       } else {
-//         canvasRef.current.style.cursor = 'default';
-//       }
-//     }
-//   }, [tool]);
-
-//   useEffect(() => {
-//     if (file && canvas) {
-//       const reader = new FileReader();
-//       reader.onload = (f) => {
-//         const data = f.target?.result as string;
-
-//         fabric.Image.fromURL(data, (img) => {
-//           if (!img.width || !img.height) {
-//             console.error("Image width or height is undefined");
-//             return;
-//           }
-
-//           const canvasWidth = canvas.getWidth();
-//           const canvasHeight = canvas.getHeight();
-
-//           const scaleX = canvasWidth / img.width;
-//           const scaleY = canvasHeight / img.height;
-//           const scale = Math.min(scaleX, scaleY) * 0.5;
-
-//           const scaledWidth = img.width * scale;
-//           const scaledHeight = img.height * scale;
-//           const left = (canvasWidth - scaledWidth) / 2;
-//           const top = canvasHeight * 0.25 - scaledHeight / 2;
-
-//           img.set({
-//             left,
-//             top,
-//             scaleX: scale,
-//             scaleY: scale,
-//             angle: 0,
-//           });
-
-//           canvas.add(img).renderAll();
-//           canvas.setActiveObject(img);
-
-//           document.addEventListener("keydown", (e) => {
-//             if (e.key === "Delete" || e.key === "Backspace") {
-//               const activeObject = canvas.getActiveObject();
-//               if (activeObject) {
-//                 canvas.remove(activeObject);
-
-//               }
-//             }
-//           });
-//         });
-//       };
-//       reader.readAsDataURL(file);
-//     }
-//   }, [file, canvas]);
-
-//   return { canvasRef, setTool, setFile, file};
-// };
-
-// export default useCanvas;
-
-
-
-
-import { useEffect, useRef, useState } from 'react';
-import { fabric } from 'fabric';
-import socket from '../socket';
-
-const useCanvas = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [tool, setTool] = useState<string>('cursor');
-  const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
+const useCanvas = (whiteboardId: number) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [index, setIndex] = useState<number>(0);
+  const [scale, setScale] = useState<number>(1);
   const [file, setFile] = useState<File | null>(null);
+  const canvas = useRef<fabric.Canvas | null>(null);
+  const [selectedText, setSelectedText] = useState<fabric.Text | null>(null);
+  const [showTextProperties, setShowTextProperties] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (canvasRef.current && !canvas) {
-      const canvasInstance = new fabric.Canvas(canvasRef.current);
-      canvasInstance.setHeight(380);
-      canvasInstance.setWidth(800);
-      setCanvas(canvasInstance);
-
-      return () => {
-        canvasInstance.dispose();
-      };
+  const saveCanvasScreenshot = (
+    canvas: fabric.Canvas,
+    whiteboardId: number
+  ) => {
+    console.log("Saving screenshot for whiteboardId:", whiteboardId);
+    if (isNaN(whiteboardId)) {
+      console.error("Invalid whiteboardId:", whiteboardId);
+      return;
     }
-  }, [canvasRef.current, canvas]);
 
-  useEffect(() => {
-    if (canvas) {
-      if (tool === 'pencil') {
-        canvas.isDrawingMode = true;
-        canvas.freeDrawingBrush.color = 'black';
-        canvas.freeDrawingBrush.width = 5;
-      } else {
-        canvas.isDrawingMode = false;
-      }
+    const dataUrl = canvas.toDataURL({
+      format: "png",
+      multiplier: 0.5,
+    });
+    localStorage.setItem(`whiteboard-${whiteboardId}-screenshot`, dataUrl);
+  };
 
-      const handleMouseUp = () => {
-        if (tool === 'pencil') {
-          const data = canvas.toJSON();
-          socket.emit('drawing', data);
-        }
-      };
-
-      canvas.on('mouse:up', handleMouseUp);
-
-      const handleMouseMove = (e:any) => {
-        if (tool === 'cursor') {
-          const pointer = canvas.getPointer(e.e);
-          socket.emit('cursor', pointer);
-        }
-      };
-
-      canvas.on('mouse:move', handleMouseMove);
-
-      socket.on('drawing', (data) => {
-        canvas.loadFromJSON(data, () => {
-          canvas.renderAll();
-        });
-      });
-
-      return () => {
-        canvas.off('mouse:up', handleMouseUp);
-        canvas.off('mouse:move', handleMouseMove);
-        socket.off('drawing');
-        socket.off('cursor');
-      };
+  const updateHistory = () => {
+    if (canvas.current) {
+      const json = canvas.current.toJSON();
+      const newHistory = [...history.slice(0, index + 1), json];
+      setHistory(newHistory);
+      setIndex(newHistory.length - 1);
+      socket.emit("canvas-data", json);
+      localStorage.setItem(`whiteboard-${whiteboardId}`, JSON.stringify(json));
+      saveCanvasScreenshot(canvas.current, whiteboardId);
     }
-  }, [canvas, tool]);
+  };
 
   useEffect(() => {
     if (canvasRef.current) {
-      canvasRef.current.style.cursor = tool === 'pencil' ? 'crosshair' : 'default';
-    }
-  }, [tool]);
+      canvas.current = new fabric.Canvas(canvasRef.current);
+      canvas.current.setHeight(580);
+      canvas.current.setWidth(1280);
+      canvas.current.renderAll();
+      const savedCanvasState = localStorage.getItem(
+        `whiteboard-${whiteboardId}`
+      );
+      if (savedCanvasState) {
+        canvas.current.loadFromJSON(
+          JSON.parse(savedCanvasState),
+          canvas.current.renderAll.bind(canvas.current)
+        );
+      }
 
-  useEffect(() => {
-    if (file && canvas) {
-      const reader = new FileReader();
-      reader.onload = (f) => {
-        const data = f.target?.result as string;
-        if (data) {
-          fabric.Image.fromURL(data, (img) => {
+      canvas.current.on("object:added", updateHistory);
+      canvas.current.on("object:modified", updateHistory);
+      canvas.current.on("object:removed", updateHistory);
+
+      socket.on("canvas-data", (data: any) => {
+        if (canvas.current) {
+          canvas.current.loadFromJSON(
+            data,
+            canvas.current.renderAll.bind(canvas.current)
+          );
+        }
+      });
+
+      canvas.current.on("selection:created", (e) => {
+        handleObjectSelection(e);
+        // if (e.target && e.target.type === "textbox") {
+        //   setSelectedText(e.target as fabric.Text);
+        // } else {
+        //   setSelectedText(null);
+        // }
+      });
+
+      canvas.current.on("selection:updated", (e) => {
+        // if (e.target && e.target.type === "textbox") {
+        //   setSelectedText(e.target as fabric.Text);
+        // } else {
+        //   setSelectedText(null);
+        // }
+        handleObjectSelection(e);
+      });
+
+      canvas.current.on("selection:cleared", () => {
+        setSelectedText(null);
+        setShowTextProperties(false);
+      });
+
+      return () => {
+        if (canvas.current) {
+          canvas.current.dispose();
+        }
+      };
+    }
+  }, [whiteboardId]);
+
+  const handleObjectSelection = (e: fabric.IEvent) => {
+    const selectedObject = e.target;
+  
+    if (selectedObject && selectedObject.type === "textbox") {
+      setSelectedText(selectedObject as fabric.Text);
+      setShowTextProperties(true);
+    } else if (selectedObject && selectedObject.type === "image") {
+      setShowTextProperties(false);
+      // Handle image selection if needed
+    } else {
+      setSelectedText(null);
+      setShowTextProperties(false);
+    }
+  };
+  
+
+  const handleToolChange = (tool: string) => {
+    const canvasInstance = canvas.current;
+    if (!canvasInstance) return;
+
+    switch (tool) {
+      case "pencil":
+        canvasInstance.isDrawingMode = true;
+        canvasInstance.freeDrawingBrush.color = "black";
+        canvasInstance.freeDrawingBrush.width = 3;
+        break;
+      case "text":
+        const text = new fabric.Textbox("Write Your Text Here", {
+          left: 100,
+          top: 100,
+          width: 200,
+          fontSize: 20,
+        });
+        canvasInstance.add(text);
+        break;
+      case "shapes":
+        const rect = new fabric.Rect({
+          left: 100,
+          top: 100,
+          fill: "red",
+          width: 100,
+          height: 100,
+        });
+        canvasInstance.add(rect);
+        break;
+      
+      case "image":
+        if(file){
+          if (!canvas) return;
+        const reader = new FileReader();
+        reader.onload = (f) => {
+          const data = f.target?.result as string;
+
+          fabric.Image.fromURL(data as string, (img) => {
             if (!img.width || !img.height) {
               console.error("Image width or height is undefined");
               return;
             }
-
-            const canvasWidth = canvas.getWidth();
-            const canvasHeight = canvas.getHeight();
-            const scaleX = canvasWidth / img.width;
-            const scaleY = canvasHeight / img.height;
-            const scale = Math.min(scaleX, scaleY) * 0.5;
-
             img.set({
-              left: (canvasWidth - img.width * scale) / 2,
-              top: (canvasHeight - img.height * scale) / 2,
-              scaleX: scale,
-              scaleY: scale,
-              selectable: true,
-              hasControls: true,
-              hasBorders: true,
+              left: 100,
+              top: 100,
+
+              angle: 0,
             });
 
-            canvas.add(img).renderAll();
-            canvas.setActiveObject(img);
+            canvas.current?.add(img).renderAll();
+            canvas.current?.setActiveObject(img);
           });
+        };
+        reader.readAsDataURL(file)
         }
-      };
-      reader.readAsDataURL(file);
+        break;
+      case "undo":
+        if (index > 0) {
+          const previous = history[index - 1];
+          canvasInstance.loadFromJSON(
+            previous,
+            canvasInstance.renderAll.bind(canvasInstance)
+          );
+          setIndex(index - 1);
+          socket.emit("canvas-data", previous);
+        }
+        break;
+      default:
+        canvasInstance.isDrawingMode = false;
     }
-  }, [file, canvas]);
+  };
 
-  return { canvasRef, setTool, setFile, file };
+  // Adding image to the canvas
+
+  const addImageFromFile = (file: File) => {
+    if (!canvas) return;
+    const reader = new FileReader();
+    reader.onload = (f) => {
+      const data = f.target?.result as string;
+
+      fabric.Image.fromURL(data as string, (img) => {
+        if (!img.width || !img.height) {
+          console.error("Image width or height is undefined");
+          return;
+        }
+        img.set({
+          left: 100,
+          top: 100,
+
+          angle: 0,
+        });
+
+        canvas.current?.add(img).renderAll();
+        canvas.current?.setActiveObject(img);
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleZoomIn = () => {
+    const canvasInstance = canvas.current;
+    if (!canvasInstance) return;
+
+    const newScale = scale + 0.1;
+    setScale(newScale);
+    canvasInstance.setZoom(newScale);
+  };
+
+  const handleZoomOut = () => {
+    const canvasInstance = canvas.current;
+    if (!canvasInstance) return;
+
+    const newScale = scale - 0.1;
+    setScale(newScale);
+    canvasInstance.setZoom(newScale);
+  };
+
+  const updateTextStyle = (
+    styleType:
+      | "bold"
+      | "italic"
+      | "underline"
+      | "color"
+      | "delete"
+      | "copy"
+      | "stroke",
+    value?: string,
+    strokeWidth?: number
+  ) => {
+    if (!selectedText || !canvas) return;
+
+    switch (styleType) {
+      case "bold":
+        selectedText.set(
+          "fontWeight",
+          selectedText.fontWeight === "bold" ? "normal" : "bold"
+        );
+        break;
+      case "italic":
+        selectedText.set(
+          "fontStyle",
+          selectedText.fontStyle === "italic" ? "normal" : "italic"
+        );
+        break;
+      case "underline":
+        const isUnderlined = !selectedText.underline;
+        selectedText.set("underline", isUnderlined);
+
+        if (isUnderlined) {
+          selectedText.set("stroke", selectedText.fill as string);
+          selectedText.set("strokeWidth", 0);
+        } else {
+          selectedText.set("stroke", null as any);
+        }
+        break;
+      case "color":
+        if (value) {
+          selectedText.set("fill", value);
+          if (selectedText.underline) {
+            selectedText.set("stroke", value);
+          }
+        }
+        break;
+      case "delete":
+        canvas.current?.remove(selectedText);
+        break;
+      case "copy":
+        selectedText.clone((clonedText: fabric.Text) => {
+          clonedText.set({
+            left: selectedText.left! + 20,
+            top: selectedText.top! + 20,
+          });
+          canvas.current?.add(clonedText);
+        });
+        break;
+      case "stroke":
+        if (styleType === "stroke") {
+          if (selectedText) {
+            selectedText.set({ stroke: value, strokeWidth: 1 });
+            canvas.current?.renderAll();
+          }
+        }
+        // if (value) {
+        //   selectedText.set("stroke", value);
+        //   selectedText.set("strokeWidth", strokeWidth || 1);
+        // }
+        break;
+      default:
+        break;
+    }
+
+    canvas.current?.renderAll();
+  };
+
+  return {
+    canvasRef,
+    setTool: handleToolChange,
+    setFile,
+    handleZoomIn,
+    handleZoomOut,
+    scale,
+    file,
+    selectedText,
+    updateTextStyle,
+  };
 };
 
 export default useCanvas;
 
-//   useEffect(() => {
-//     if (file && canvas) {
-//       const reader = new FileReader();
-//       reader.onload = (f) => {
-//         const data = f.target?.result as string;
-
-//         fabric.Image.fromURL(data, (img) => {
-//           if (!img.width || !img.height) {
-//             console.error("Image width or height is undefined");
-//             return;
-//           }
-
-//           const canvasWidth = canvas.getWidth();
-//           const canvasHeight = canvas.getHeight();
-
-//           const scaleX = canvasWidth / img.width;
-//           const scaleY = canvasHeight / img.height;
-//           const scale = Math.min(scaleX, scaleY) * 0.5;
-
-//           const scaledWidth = img.width * scale;
-//           const scaledHeight = img.height * scale;
-//           const left = (canvasWidth - scaledWidth) / 2;
-//           const top = canvasHeight * 0.25 - scaledHeight / 2;
-
-//           img.set({
-//             left,
-//             top,
-//             scaleX: scale,
-//             scaleY: scale,
-//             angle: 0,
-//             selectable: true,
-//             hasControls: true,
-//             hasBorders: true,
-//           });
-
-//           canvas.add(img).renderAll();
-//           canvas.setActiveObject(img);
-
-//           document.addEventListener("keydown", (e) => {
-//             if (e.key === "Delete" || e.key === "Backspace") {
-//               const activeObject = canvas.getActiveObject();
-//               if (activeObject) {
-//                 canvas.remove(activeObject);
-//                 // Optionally, use a toast notification library to show success message
-//                 // toast.success("Image deleted successfully");
-//               }
-//             }
-//           });
-//         });
-//       };
-//       reader.readAsDataURL(file);
-//     }
-//   }, [file, canvas]);
+// case 'image':
+      //   if (file) {
+      //     const reader = new FileReader();
+      //     reader.onload = (e) => {
+      //       const imgObj = new Image();
+      //       imgObj.src = e.target!.result as string;
+      //       imgObj.onload = () => {
+      //         const img = new fabric.Image(imgObj);
+      //         img.scaleToWidth(100);
+      //         canvasInstance.add(img);
+      //         socket.emit('canvas-data', canvasInstance.toJSON());
+      //       };
+      //     };
+      //     reader.readAsDataURL(file);
+      //   }
+      //   break;

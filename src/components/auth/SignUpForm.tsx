@@ -1,12 +1,13 @@
-import React, { ChangeEvent, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import Or from "../Or";
-import { Input } from "../../ui/input";
+
 // import { useAuth } from "../../contexts/AuthContext";
 import Loader from "../Loader";
 import TextInput from "../TextInput";
-import { useForm, FieldErrors, FieldError } from "react-hook-form";
+import { useForm, FieldError } from "react-hook-form";
+import { useSignIn, useSignUp } from '@clerk/clerk-react';
 
 
 interface InitialValues {
@@ -16,7 +17,8 @@ interface InitialValues {
 }
 
 const SignUpForm = () => {
-
+  const { signUp, isLoaded } = useSignUp();
+  const { signIn } = useSignIn();
   const {
     register,
     handleSubmit,
@@ -37,16 +39,42 @@ const SignUpForm = () => {
     password: "",
   });
 
-  const onSubmit = async (data: InitialValues) => {
-    // e.preventDefault();
-    // try {
-    //   setLoading(true);
-    //   await signup(email, password);
-    // } catch (error) {
-    //   console.error("Signup failed", error);
-    // } finally {
-    //   setLoading(false);
-    // }
+  // const onSubmit = async (data: InitialValues) => {
+    
+  // };
+
+  const handleSignup = async (event:any) => {
+    const username = event.target.username.value;
+    const email = event.target.email.value;
+    const password = event.target.password.value;
+
+    try {
+      // Create a new user
+      await signUp?.create({
+        username,
+        emailAddress: email,
+        password: password,
+      });
+
+      await signUp?.attemptEmailAddressVerification({ code: '123456' });
+
+      // Attempt to sign the user in after successful sign-up
+      const signInAttempt = await signIn?.create({
+        identifier: email,
+        password: password,
+      });
+
+      if (signInAttempt?.status === 'complete') {
+        // Redirect or show success message
+        console.log('Sign-up and sign-in successful!');
+      } else {
+        // Handle multi-factor authentication if needed
+        console.log('Further sign-in steps required');
+      }
+    } catch (error) {
+      console.error('Sign Up Error:', error);
+      // Handle error
+    }
   };
 
   const handleChangeForm = (e: ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +85,7 @@ const SignUpForm = () => {
     });
   };
   return (
-    <form action="" method="post" onSubmit={handleSubmit(onSubmit)}>
+    <form action="" method="post" onSubmit={handleSignup}>
       <div className="flex items-center gap-3 mb-3">
         <button
           type="submit"
@@ -71,7 +99,7 @@ const SignUpForm = () => {
         </button>
       </div>
       <Or />
-      <div>
+      {/* <div>
         <label htmlFor="" className="text-sm font-medium">
           Username*
         </label>
@@ -122,7 +150,13 @@ const SignUpForm = () => {
           onChange={handleChangeForm}
         />
 
-      </div>
+      </div> */}
+      
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" required />
+
+
 
       <button
         type="submit"

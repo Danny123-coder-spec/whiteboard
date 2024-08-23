@@ -30,7 +30,7 @@ const pencils = [
   },
   {
     id:"yellow",
-    icon: <FaPencilAlt size={24} color="yellow"/>,
+    icon: <FaPencilAlt size={24} />,
     color: "yellow",
     width: 3.5,
   },
@@ -46,7 +46,7 @@ const PencilPalette = ({onSelectPencil, setShowPencilPalette}:PencilPaletteProps
       {pencils.map((pencil, index) => (
         <div
           key={index}
-          className={`${index}`}
+          className={`${index === 5 && 'text-yellow-600'} cursor-pointer`}
           onClick={() => {
             onSelectPencil(pencil.color, pencil.width)
           }}

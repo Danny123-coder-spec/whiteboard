@@ -1,0 +1,19 @@
+/* custom.css */
+
+/* Hide the "Secured by Clerk" label */
+.cl-internal-wf8x4b{
+    display: none;
+}
+
+.cl-internal-1fcj7sw{
+    display: none;
+}
+  
+  /* Hide the "Development Mode" label */
+  .cl-internal-16vtwdp {
+    display: none;
+  }
+
+.cl-formButtonPrimary .cl-button  .cl-internal-ttumny{
+    background-color: aqua;
+}

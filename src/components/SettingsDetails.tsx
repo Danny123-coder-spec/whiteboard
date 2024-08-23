@@ -1,11 +1,12 @@
 import { CiExport } from "react-icons/ci";
 import { IoHelpOutline } from "react-icons/io5";
 import { IoInformationOutline } from "react-icons/io5";
+import { exportToPng } from "../lib/utils";
 
 const SettingsDetails = () => {
   return (
     <div className="flex flex-col items-start ">
-      <div className="flex items-center hover:bg-blue-100 cursor-pointer p-2 transition-all duration-300 ease-in-out justify-start w-full gap-4  pb-2">
+      <div onClick={exportToPng} className="flex items-center hover:bg-blue-100 cursor-pointer p-2 transition-all duration-300 ease-in-out justify-start w-full gap-4  pb-2">
         <CiExport />
         <span className="text-sm font-medium">Export</span>
       </div>

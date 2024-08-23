@@ -2,8 +2,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Home from "./pages/homepage/Home";
 
 import WhiteboardPage from "./pages/WhiteboardPage";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
+import SignInPage from "./pages/SignInPage";
+import SignUpPage from "./pages/SignUpPage";
 
 function App() {
   return (
@@ -11,8 +11,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/whiteboard/:id" element={<WhiteboardPage />} />
-        <Route path="/sign-in" element={<Login/>} />
-        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/sign-in" element={<SignInPage/>} />
+        <Route path="/sign-up" element={<SignUpPage/>} />
       </Routes>
     </Router>
   );

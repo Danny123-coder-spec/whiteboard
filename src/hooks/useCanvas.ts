@@ -118,58 +118,82 @@ const useCanvas = (whiteboardId: number) => {
   };
   
 
-  const handleToolChange = (tool: string) => {
+  const handleToolChange = (tool: string, shapeType?: string) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;
-
+  
     switch (tool) {
       case "pencil":
         setShowPencilPalette(true);
         break;
       case "text":
         const text = new fabric.Textbox("Write Your Text Here", {
-          left: 100,
-          top: 100,
+          left: 550,
+          top: 150,
           width: 200,
           fontSize: 20,
         });
         canvasInstance.add(text);
         break;
       case "shapes":
-        const rect = new fabric.Rect({
-          left: 100,
-          top: 100,
-          fill: "red",
-          width: 100,
-          height: 100,
-        });
-        canvasInstance.add(rect);
-        break;
-      
-      case "image":
-        if(file){
-          if (!canvas) return;
-        const reader = new FileReader();
-        reader.onload = (f) => {
-          const data = f.target?.result as string;
-
-          fabric.Image.fromURL(data as string, (img) => {
-            if (!img.width || !img.height) {
-              console.error("Image width or height is undefined");
+        if (shapeType) {
+          let shape;
+          switch (shapeType) {
+            case "rectangle":
+              shape = new fabric.Rect({
+                left: 550,
+                top: 100,
+                fill: "red",
+                width: 100,
+                height: 100,
+              });
+              break;
+            case "circle":
+              shape = new fabric.Circle({
+                left: 550,
+                top: 100,
+                radius: 50,
+                fill: "blue",
+              });
+              break;
+            case "triangle":
+              shape = new fabric.Triangle({
+                left: 550,
+                top: 100,
+                width: 100,
+                height: 100,
+                fill: "green",
+              });
+              break;
+            default:
+              console.error("Unknown shape type");
               return;
-            }
-            img.set({
-              left: 100,
-              top: 100,
-
-              angle: 0,
+          }
+          canvasInstance.add(shape);
+        }
+        break;
+      case "image":
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (f) => {
+            const data = f.target?.result as string;
+  
+            fabric.Image.fromURL(data as string, (img) => {
+              if (!img.width || !img.height) {
+                console.error("Image width or height is undefined");
+                return;
+              }
+              img.set({
+                left: 100,
+                top: 100,
+                angle: 0,
+              });
+  
+              canvasInstance.add(img).renderAll();
+              canvasInstance.setActiveObject(img);
             });
-
-            canvas.current?.add(img).renderAll();
-            canvas.current?.setActiveObject(img);
-          });
-        };
-        reader.readAsDataURL(file)
+          };
+          reader.readAsDataURL(file);
         }
         break;
       case "undo":
@@ -187,7 +211,7 @@ const useCanvas = (whiteboardId: number) => {
         canvasInstance.isDrawingMode = false;
     }
   };
-
+  
   const handlePencilSelect = (color: string, width: number) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;

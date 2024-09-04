@@ -12,6 +12,7 @@ const useCanvas = (whiteboardId: number) => {
   const [selectedText, setSelectedText] = useState<fabric.Text | null>(null);
   const [showTextProperties, setShowTextProperties] = useState<boolean>(false);
   const [showPencilPalette, setShowPencilPalette] = useState(false);
+  const [showShapes, setShowShapes] = useState(false);
 
   const saveCanvasScreenshot = (
     canvas: fabric.Canvas,
@@ -71,23 +72,23 @@ const useCanvas = (whiteboardId: number) => {
         }
       });
 
-      canvas.current.on("selection:created", (e) => {
-        handleObjectSelection(e);
-        // if (e.target && e.target.type === "textbox") {
-        //   setSelectedText(e.target as fabric.Text);
-        // } else {
-        //   setSelectedText(null);
-        // }
-      });
+      // canvas.current.on("selection:created", (e) => {
+      //   handleObjectSelection(e);
+      //   if (e.target && e.target.type === "textbox") {
+      //     setSelectedText(e.target as fabric.Text);
+      //   } else {
+      //     setSelectedText(null);
+      //   }
+      // });
 
-      canvas.current.on("selection:updated", (e) => {
-        // if (e.target && e.target.type === "textbox") {
-        //   setSelectedText(e.target as fabric.Text);
-        // } else {
-        //   setSelectedText(null);
-        // }
-        handleObjectSelection(e);
-      });
+      // canvas.current.on("selection:updated", (e) => {
+      //   if (e.target && e.target.type === "textbox") {
+      //     setSelectedText(e.target as fabric.Text);
+      //   } else {
+      //     setSelectedText(null);
+      //   }
+      //   handleObjectSelection(e);
+      // });
 
       canvas.current.on("selection:cleared", () => {
         setSelectedText(null);
@@ -101,6 +102,8 @@ const useCanvas = (whiteboardId: number) => {
       };
     }
   }, [whiteboardId]);
+
+  
 
   const handleObjectSelection = (e: fabric.IEvent) => {
     const selectedObject = e.target;
@@ -117,7 +120,6 @@ const useCanvas = (whiteboardId: number) => {
     }
   };
   
-
   const handleToolChange = (tool: string, shapeType?: string) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;
@@ -126,51 +128,17 @@ const useCanvas = (whiteboardId: number) => {
       case "pencil":
         setShowPencilPalette(true);
         break;
-      case "text":
-        const text = new fabric.Textbox("Write Your Text Here", {
-          left: 550,
-          top: 150,
-          width: 200,
-          fontSize: 20,
-        });
-        canvasInstance.add(text);
-        break;
+      // case "text":
+      //   const text = new fabric.Textbox("Write Your Text Here", {
+      //     left: 550,
+      //     top: 150,
+      //     width: 200,
+      //     fontSize: 20,
+      //   });
+      //   canvasInstance.add(text);
+      //   break;
       case "shapes":
-        if (shapeType) {
-          let shape;
-          switch (shapeType) {
-            case "rectangle":
-              shape = new fabric.Rect({
-                left: 550,
-                top: 100,
-                fill: "red",
-                width: 100,
-                height: 100,
-              });
-              break;
-            case "circle":
-              shape = new fabric.Circle({
-                left: 550,
-                top: 100,
-                radius: 50,
-                fill: "blue",
-              });
-              break;
-            case "triangle":
-              shape = new fabric.Triangle({
-                left: 550,
-                top: 100,
-                width: 100,
-                height: 100,
-                fill: "green",
-              });
-              break;
-            default:
-              console.error("Unknown shape type");
-              return;
-          }
-          canvasInstance.add(shape);
-        }
+        setShowShapes(true); 
         break;
       case "image":
         if (file) {
@@ -212,6 +180,70 @@ const useCanvas = (whiteboardId: number) => {
     }
   };
   
+
+  const addText = (text: string, options: any = {}) => {
+    const canvasInstance = canvas.current;
+    if (!canvasInstance) return;
+  
+    // Create a new Textbox object with the given text and options
+    const textObj = new fabric.Textbox(text || "Write Your Text Here", {
+      left: 150,
+      top: 100,
+      width: 150,
+      fontSize: 20,
+      ...options,
+    });
+  
+    // Set control visibility for resizing and rotating
+    textObj.setControlsVisibility({
+      mtr: false,
+      bl: true,   
+      br: true,   
+      tl: true,
+      tr: true, 
+      ml: true,   
+      mr: true, 
+      mt: true,  
+      mb: true, 
+    });
+  
+    canvasInstance.on("selection:created", (e) => {
+      const selectedObjects = e.selected;
+      if (selectedObjects && selectedObjects.length > 0) {
+        const activeObject = selectedObjects[0];
+        if (activeObject.type === "textbox") {
+          setSelectedText(activeObject as fabric.Textbox);
+        } else {
+          setSelectedText(null);
+        }
+      }
+    });
+  
+    canvasInstance.on("selection:cleared", () => {
+      setSelectedText(null);
+    });
+  
+    canvasInstance.on("selection:updated", (e) => {
+      const selectedObjects = e.selected;
+      if (selectedObjects && selectedObjects.length > 0) {
+        const activeObject = selectedObjects[0];
+        if (activeObject.type === "textbox") {
+          setSelectedText(activeObject as fabric.Textbox);
+        } else {
+          setSelectedText(null);
+        }
+      }
+    });
+  
+
+    canvasInstance.add(textObj);
+    canvasInstance.setActiveObject(textObj);
+    setSelectedText(textObj); 
+    canvasInstance.renderAll();
+  };
+  
+
+  
   const handlePencilSelect = (color: string, width: number) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;
@@ -222,32 +254,152 @@ const useCanvas = (whiteboardId: number) => {
     setShowPencilPalette(false);
   };
 
+
+
+  
+  const handleShapeSelect = (shapeType: string) => {
+    const canvasInstance = canvas.current;
+    if (!canvasInstance) return;
+  
+    let shape;
+    let textbox;
+    const commonTextboxProps = {
+      fontSize: 20,
+      textAlign: "center",
+      editable: true,
+      selectable: true,
+      fill: "white", 
+    };
+  
+    switch (shapeType) {
+      case "rectangle":
+        shape = new fabric.Rect({
+          left: 550,
+          top: 100,
+          width: 200,
+          height: 100,
+          fill: "red",
+          selectable: true, 
+        });
+  
+        textbox = new fabric.Textbox("Write here", {
+          left: 550,
+          top: 100 + (100 / 4), 
+          width: 200,
+          backgroundColor: "transparent",
+          ...commonTextboxProps,
+        });
+        break;
+  
+      case "circle":
+        shape = new fabric.Circle({
+          left: 550,
+          top: 100,
+          radius: 100, // Circle shape
+          fill: "blue", // Circle color
+          selectable: true,
+        });
+  
+        textbox = new fabric.Textbox("Write here", {
+          left: 550,
+          top: 150, // Adjust to center the text within the circle
+          width: 200,
+          backgroundColor: "transparent",
+          ...commonTextboxProps,
+        });
+        break;
+  
+      case "triangle":
+        shape = new fabric.Triangle({
+          left: 550,
+          top: 100,
+          width: 200,
+          height: 150, // Triangle shape
+          fill: "green", // Triangle color
+          selectable: true,
+        });
+  
+        textbox = new fabric.Textbox("Write here", {
+          left: 550,
+          top: 130, // Adjust to center the text within the triangle
+          width: 200,
+          backgroundColor: "transparent",
+          ...commonTextboxProps,
+        });
+        break;
+  
+      default:
+        console.error("Unknown shape type");
+        return;
+    }
+  
+
+    canvasInstance.add(shape);
+    canvasInstance.add(textbox);
+    canvasInstance.setActiveObject(textbox);
+    canvasInstance.renderAll();
+    setShowShapes(false)
+  };
+  
+
+  
+  
+
+
+  const handleTextBoxColorChange = (color: string) => {
+    const canvasInstance = canvas.current;
+    const activeObject = canvasInstance?.getActiveObject();
+  
+    if (!activeObject || !(activeObject instanceof fabric.Group)) return;
+  
+    // Get the Textbox from the Group
+    const textbox = activeObject._objects.find(
+      (obj) => obj.type === "textbox"
+    ) as fabric.Textbox;
+  
+    if (textbox) {
+      textbox.set({ fill: color });
+      canvasInstance?.renderAll();
+    }
+  };
+  
+  const handleTextFormatting = (option: string) => {
+    const canvasInstance = canvas.current;
+    const activeObject = canvasInstance?.getActiveObject();
+  
+    if (!activeObject || !(activeObject instanceof fabric.Group)) return;
+  
+    // Get the Textbox from the Group
+    const textbox = activeObject._objects.find(
+      (obj) => obj.type === "textbox"
+    ) as fabric.Textbox;
+  
+    if (!textbox) return;
+  
+    switch (option) {
+      case "bold":
+        textbox.set({
+          fontWeight: textbox.fontWeight === "bold" ? "normal" : "bold",
+        });
+        break;
+      case "italic":
+        textbox.set({
+          fontStyle: textbox.fontStyle === "italic" ? "normal" : "italic",
+        });
+        break;
+      default:
+        console.error("Unknown formatting option");
+        return;
+    }
+  
+    canvasInstance?.renderAll();
+  };
+  
+  
+
   // Adding image to the canvas
 
-  const addImageFromFile = (file: File) => {
-    if (!canvas) return;
-    const reader = new FileReader();
-    reader.onload = (f) => {
-      const data = f.target?.result as string;
 
-      fabric.Image.fromURL(data as string, (img) => {
-        if (!img.width || !img.height) {
-          console.error("Image width or height is undefined");
-          return;
-        }
-        img.set({
-          left: 100,
-          top: 100,
-
-          angle: 0,
-        });
-
-        canvas.current?.add(img).renderAll();
-        canvas.current?.setActiveObject(img);
-      });
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleZoomIn = () => {
     const canvasInstance = canvas.current;
@@ -277,7 +429,7 @@ const useCanvas = (whiteboardId: number) => {
       | "copy"
       | "stroke",
     value?: string,
-    strokeWidth?: number
+  
   ) => {
     if (!selectedText || !canvas) return;
 
@@ -332,10 +484,6 @@ const useCanvas = (whiteboardId: number) => {
             canvas.current?.renderAll();
           }
         }
-        // if (value) {
-        //   selectedText.set("stroke", value);
-        //   selectedText.set("strokeWidth", strokeWidth || 1);
-        // }
         break;
       default:
         break;
@@ -353,10 +501,17 @@ const useCanvas = (whiteboardId: number) => {
     scale,
     file,
     selectedText,
+    addText,
     updateTextStyle,
     handlePencilSelect,
     showPencilPalette,
     setShowPencilPalette,
+    showShapes,
+    setShowShapes,
+    handleShapeSelect,
+    handleTextBoxColorChange,
+    handleTextFormatting,
+    setSelectedText,
   };
 };
 

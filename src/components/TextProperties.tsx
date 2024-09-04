@@ -5,12 +5,12 @@ import React, { useState } from "react";
 import { IoColorPaletteOutline } from "react-icons/io5";
 import { GrFormCheckmark } from "react-icons/gr";
 import { AiOutlineDelete } from "react-icons/ai";
-import { Tooltip } from "react-tooltip";
+// import { Tooltip } from "react-tooltip";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { PiTextUnderline } from "react-icons/pi";
 import { PiTextItalic } from "react-icons/pi";
 import { PiTextB } from "react-icons/pi";
-import { MdOutlineTextFields } from "react-icons/md";
+// import { MdOutlineTextFields } from "react-icons/md";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,7 +59,7 @@ const TextProperties = ({ updateTextStyle }: TextPropertiesProps) => {
 
   return (
     <>
-      <div className="absolute top-36 left-[4rem] flex items-center justify-between z-40 p-2 w-[20rem] bg-white shadow-md rounded-md">
+      <div className="absolute top-[4rem] left-[4rem] flex items-center justify-between z-40 p-2 w-[20rem] bg-white shadow-md rounded-md">
         <button
           onClick={() => updateTextStyle("bold")}
           className="font-bold"
@@ -130,7 +130,7 @@ const TextProperties = ({ updateTextStyle }: TextPropertiesProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger
             data-tooltip-id="tooltip"
             data-tooltip-content="Choose Stroke Color"
@@ -171,7 +171,7 @@ const TextProperties = ({ updateTextStyle }: TextPropertiesProps) => {
               ))}
             </div>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
 
         <button
           onClick={() => updateTextStyle("delete")}

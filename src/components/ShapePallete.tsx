@@ -22,11 +22,11 @@ const shapes = [
   { icon: <FaCircle size={24} color="blue" />, shapeType: "circle" },
 ];
 
-const colors = ["red", "green", "blue", "yellow"];
+
 
 const ShapePalette: React.FC<ShapePaletteProps> = ({
   onSelectShape,
-  handleTextBoxColorChange,
+
 }) => {
   return (
     <div className="flex items-center gap-8 bg-white rounded p-3 absolute -top-14 left-32">

@@ -46,6 +46,10 @@ const WhiteboardPage = () => {
         editable: true,
       });
     }
+
+    if(selectedTextColor){
+      setSelectedTextColor(selectedTextColor);
+    }
   }, []);
 
   const handleTabChange = (newTab:any) => {

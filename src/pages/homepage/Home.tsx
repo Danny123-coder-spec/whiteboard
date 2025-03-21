@@ -5,7 +5,6 @@ import WhiteboardCard from "../../components/WhiteboardCard";
 import { Link, useNavigate } from "react-router-dom";
 import { PiDotsThree } from "react-icons/pi";
 import WhiteboardActions from "../../components/WhiteboardActions";
-import { useUser } from "@clerk/clerk-react";
 
 interface Whiteboard {
   id: number;

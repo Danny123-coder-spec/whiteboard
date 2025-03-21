@@ -16,7 +16,7 @@ interface Whiteboard {
 
 const Home = () => {
 
-  const { user } = useUser();
+ 
   const [whiteboards, setWhiteboards] = useState<Whiteboard[]>(() => {
     const savedWhiteboards = localStorage.getItem("whiteboards");
     return savedWhiteboards ? JSON.parse(savedWhiteboards) : [];
@@ -29,10 +29,10 @@ const Home = () => {
 
 
   const handleCreateNewWhiteboard = () => {
-    if (!user) {
-      navigate('/sign-in');
-      return;
-    }
+    // if (!user) {
+    //   navigate('/sign-in');
+    //   return;
+    // }
     const newWhiteboard: Whiteboard = {
       id: whiteboards.length + 1,
       title: "Untitled",

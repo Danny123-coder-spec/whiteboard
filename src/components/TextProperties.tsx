@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { IoColorPaletteOutline } from "react-icons/io5";
 import { GrFormCheckmark } from "react-icons/gr";
 import { AiOutlineDelete } from "react-icons/ai";
@@ -37,9 +37,9 @@ interface TextPropertiesProps {
 const TextProperties = ({ updateTextStyle }: TextPropertiesProps) => {
   const [selectedTextColor, setSelectedTextColor] = useState<string>("");
 
-  const [selectedStrokeColor, setSelectedStrokeColor] = useState<string | null>(
-    null
-  );
+  // const [selectedStrokeColor, setSelectedStrokeColor] = useState<string | null>(
+  //   null
+  // );
 
   const handleColorSelect = (color: string) => {
     setSelectedTextColor(color);
@@ -47,15 +47,15 @@ const TextProperties = ({ updateTextStyle }: TextPropertiesProps) => {
  
   };
 
-  const handleStrokeColorSelect = (color: string) => {
-    if (selectedStrokeColor === color) {
-      setSelectedStrokeColor(null);
-      updateTextStyle("stroke", undefined);
-    } else {
-      setSelectedStrokeColor(color);
-      updateTextStyle("stroke", color);
-    }
-  };
+  // const handleStrokeColorSelect = (color: string) => {
+  //   if (selectedStrokeColor === color) {
+  //     setSelectedStrokeColor(null);
+  //     updateTextStyle("stroke", undefined);
+  //   } else {
+  //     setSelectedStrokeColor(color);
+  //     updateTextStyle("stroke", color);
+  //   }
+  // };
 
   return (
     <>

@@ -5,7 +5,6 @@ import { FaNoteSticky } from "react-icons/fa6";
 import { GoImage } from "react-icons/go";
 import { RxText } from "react-icons/rx";
 import { PiShapes } from "react-icons/pi";
-import { useEffect, useState } from "react";
 import TextProperties from "./TextProperties";
 import PencilPalette from "./PencilPalette";
 import ShapePalette from "./ShapePallete";
@@ -46,7 +45,7 @@ const Bottomfunc = ({
   selectedText,
   handleTextBoxColorChange,
   updateTextStyle,
-  setShowShapes,
+
   handleShapesSelect,
   showShapes,
   setShowPencilPalette,

@@ -92,7 +92,10 @@ const useCanvas = (whiteboardId: number) => {
 
       canvas.current.on("selection:cleared", () => {
         setSelectedText(null);
-        setShowTextProperties(false);
+
+        if (showTextProperties) {
+          setShowTextProperties(false);
+        }
       });
 
       return () => {
@@ -103,27 +106,25 @@ const useCanvas = (whiteboardId: number) => {
     }
   }, [whiteboardId]);
 
-  
+  // const handleObjectSelection = (e: fabric.IEvent) => {
+  //   const selectedObject = e.target;
 
-  const handleObjectSelection = (e: fabric.IEvent) => {
-    const selectedObject = e.target;
-  
-    if (selectedObject && selectedObject.type === "textbox") {
-      setSelectedText(selectedObject as fabric.Text);
-      setShowTextProperties(true);
-    } else if (selectedObject && selectedObject.type === "image") {
-      setShowTextProperties(false);
-      // Handle image selection if needed
-    } else {
-      setSelectedText(null);
-      setShowTextProperties(false);
-    }
-  };
-  
-  const handleToolChange = (tool: string, shapeType?: string) => {
+  //   if (selectedObject && selectedObject.type === "textbox") {
+  //     setSelectedText(selectedObject as fabric.Text);
+  //     setShowTextProperties(true);
+  //   } else if (selectedObject && selectedObject.type === "image") {
+  //     setShowTextProperties(false);
+  //     // Handle image selection if needed
+  //   } else {
+  //     setSelectedText(null);
+  //     setShowTextProperties(false);
+  //   }
+  // };
+
+  const handleToolChange = (tool: string) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;
-  
+
     switch (tool) {
       case "pencil":
         setShowPencilPalette(true);
@@ -138,14 +139,14 @@ const useCanvas = (whiteboardId: number) => {
       //   canvasInstance.add(text);
       //   break;
       case "shapes":
-        setShowShapes(true); 
+        setShowShapes(true);
         break;
       case "image":
         if (file) {
           const reader = new FileReader();
           reader.onload = (f) => {
             const data = f.target?.result as string;
-  
+
             fabric.Image.fromURL(data as string, (img) => {
               if (!img.width || !img.height) {
                 console.error("Image width or height is undefined");
@@ -156,7 +157,7 @@ const useCanvas = (whiteboardId: number) => {
                 top: 100,
                 angle: 0,
               });
-  
+
               canvasInstance.add(img).renderAll();
               canvasInstance.setActiveObject(img);
             });
@@ -179,12 +180,11 @@ const useCanvas = (whiteboardId: number) => {
         canvasInstance.isDrawingMode = false;
     }
   };
-  
 
   const addText = (text: string, options: any = {}) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;
-  
+
     // Create a new Textbox object with the given text and options
     const textObj = new fabric.Textbox(text || "Write Your Text Here", {
       left: 150,
@@ -193,20 +193,20 @@ const useCanvas = (whiteboardId: number) => {
       fontSize: 20,
       ...options,
     });
-  
+
     // Set control visibility for resizing and rotating
     textObj.setControlsVisibility({
       mtr: false,
-      bl: true,   
-      br: true,   
+      bl: true,
+      br: true,
       tl: true,
-      tr: true, 
-      ml: true,   
-      mr: true, 
-      mt: true,  
-      mb: true, 
+      tr: true,
+      ml: true,
+      mr: true,
+      mt: true,
+      mb: true,
     });
-  
+
     canvasInstance.on("selection:created", (e) => {
       const selectedObjects = e.selected;
       if (selectedObjects && selectedObjects.length > 0) {
@@ -218,11 +218,11 @@ const useCanvas = (whiteboardId: number) => {
         }
       }
     });
-  
+
     canvasInstance.on("selection:cleared", () => {
       setSelectedText(null);
     });
-  
+
     canvasInstance.on("selection:updated", (e) => {
       const selectedObjects = e.selected;
       if (selectedObjects && selectedObjects.length > 0) {
@@ -234,16 +234,13 @@ const useCanvas = (whiteboardId: number) => {
         }
       }
     });
-  
 
     canvasInstance.add(textObj);
     canvasInstance.setActiveObject(textObj);
-    setSelectedText(textObj); 
+    setSelectedText(textObj);
     canvasInstance.renderAll();
   };
-  
 
-  
   const handlePencilSelect = (color: string, width: number) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;
@@ -254,13 +251,10 @@ const useCanvas = (whiteboardId: number) => {
     setShowPencilPalette(false);
   };
 
-
-
-  
   const handleShapeSelect = (shapeType: string) => {
     const canvasInstance = canvas.current;
     if (!canvasInstance) return;
-  
+
     let shape;
     let textbox;
     const commonTextboxProps = {
@@ -268,9 +262,9 @@ const useCanvas = (whiteboardId: number) => {
       textAlign: "center",
       editable: true,
       selectable: true,
-      fill: "white", 
+      fill: "white",
     };
-  
+
     switch (shapeType) {
       case "rectangle":
         shape = new fabric.Rect({
@@ -279,18 +273,18 @@ const useCanvas = (whiteboardId: number) => {
           width: 200,
           height: 100,
           fill: "red",
-          selectable: true, 
+          selectable: true,
         });
-  
+
         textbox = new fabric.Textbox("Write here", {
           left: 550,
-          top: 100 + (100 / 4), 
+          top: 100 + 100 / 4,
           width: 200,
           backgroundColor: "transparent",
           ...commonTextboxProps,
         });
         break;
-  
+
       case "circle":
         shape = new fabric.Circle({
           left: 550,
@@ -299,7 +293,7 @@ const useCanvas = (whiteboardId: number) => {
           fill: "blue", // Circle color
           selectable: true,
         });
-  
+
         textbox = new fabric.Textbox("Write here", {
           left: 550,
           top: 150, // Adjust to center the text within the circle
@@ -308,7 +302,7 @@ const useCanvas = (whiteboardId: number) => {
           ...commonTextboxProps,
         });
         break;
-  
+
       case "triangle":
         shape = new fabric.Triangle({
           left: 550,
@@ -318,7 +312,7 @@ const useCanvas = (whiteboardId: number) => {
           fill: "green", // Triangle color
           selectable: true,
         });
-  
+
         textbox = new fabric.Textbox("Write here", {
           left: 550,
           top: 130, // Adjust to center the text within the triangle
@@ -327,55 +321,49 @@ const useCanvas = (whiteboardId: number) => {
           ...commonTextboxProps,
         });
         break;
-  
+
       default:
         console.error("Unknown shape type");
         return;
     }
-  
 
     canvasInstance.add(shape);
     canvasInstance.add(textbox);
     canvasInstance.setActiveObject(textbox);
     canvasInstance.renderAll();
-    setShowShapes(false)
+    setShowShapes(false);
   };
-  
-
-  
-  
-
 
   const handleTextBoxColorChange = (color: string) => {
     const canvasInstance = canvas.current;
     const activeObject = canvasInstance?.getActiveObject();
-  
+
     if (!activeObject || !(activeObject instanceof fabric.Group)) return;
-  
+
     // Get the Textbox from the Group
     const textbox = activeObject._objects.find(
       (obj) => obj.type === "textbox"
     ) as fabric.Textbox;
-  
+
     if (textbox) {
       textbox.set({ fill: color });
       canvasInstance?.renderAll();
     }
   };
-  
+
   const handleTextFormatting = (option: string) => {
     const canvasInstance = canvas.current;
     const activeObject = canvasInstance?.getActiveObject();
-  
+
     if (!activeObject || !(activeObject instanceof fabric.Group)) return;
-  
+
     // Get the Textbox from the Group
     const textbox = activeObject._objects.find(
       (obj) => obj.type === "textbox"
     ) as fabric.Textbox;
-  
+
     if (!textbox) return;
-  
+
     switch (option) {
       case "bold":
         textbox.set({
@@ -391,15 +379,11 @@ const useCanvas = (whiteboardId: number) => {
         console.error("Unknown formatting option");
         return;
     }
-  
+
     canvasInstance?.renderAll();
   };
-  
-  
 
   // Adding image to the canvas
-
-
 
   const handleZoomIn = () => {
     const canvasInstance = canvas.current;
@@ -428,8 +412,7 @@ const useCanvas = (whiteboardId: number) => {
       | "delete"
       | "copy"
       | "stroke",
-    value?: string,
-  
+    value?: string
   ) => {
     if (!selectedText || !canvas) return;
 
@@ -518,18 +501,18 @@ const useCanvas = (whiteboardId: number) => {
 export default useCanvas;
 
 // case 'image':
-      //   if (file) {
-      //     const reader = new FileReader();
-      //     reader.onload = (e) => {
-      //       const imgObj = new Image();
-      //       imgObj.src = e.target!.result as string;
-      //       imgObj.onload = () => {
-      //         const img = new fabric.Image(imgObj);
-      //         img.scaleToWidth(100);
-      //         canvasInstance.add(img);
-      //         socket.emit('canvas-data', canvasInstance.toJSON());
-      //       };
-      //     };
-      //     reader.readAsDataURL(file);
-      //   }
-      //   break;
+//   if (file) {
+//     const reader = new FileReader();
+//     reader.onload = (e) => {
+//       const imgObj = new Image();
+//       imgObj.src = e.target!.result as string;
+//       imgObj.onload = () => {
+//         const img = new fabric.Image(imgObj);
+//         img.scaleToWidth(100);
+//         canvasInstance.add(img);
+//         socket.emit('canvas-data', canvasInstance.toJSON());
+//       };
+//     };
+//     reader.readAsDataURL(file);
+//   }
+//   break;
